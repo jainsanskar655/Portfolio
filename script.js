@@ -82,13 +82,57 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  // Form submit loading state
+  // Form submit handling
   const form = document.querySelector('#contact-modal form');
   const submitBtn = form.querySelector('button[type="submit"]');
+  const modalContent = document.querySelector('.modal-content');
 
   form.addEventListener('submit', function(e) {
+    e.preventDefault(); // Prevent default form submission
+
     submitBtn.classList.add('btn-loading');
     submitBtn.disabled = true;
     submitBtn.textContent = 'Sending...';
+
+    // Prepare form data
+    const formData = new FormData(form);
+
+    // Send form data using fetch
+    fetch(form.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        // Success: Show thank you message
+        modalContent.innerHTML = `
+          <span class="close-btn" id="close-modal">&times;</span>
+          <h2>Thank You!</h2>
+          <p>Your message has been sent successfully. I'll get back to you soon.</p>
+          <button class="btn btn-primary" id="close-thank-you">Close</button>
+        `;
+
+        // Reattach close functionality
+        document.getElementById('close-modal').onclick = function() {
+          modal.style.display = "none";
+        };
+        document.getElementById('close-thank-you').onclick = function() {
+          modal.style.display = "none";
+        };
+      } else {
+        throw new Error('Form submission failed');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      // Error: Show error message
+      submitBtn.classList.remove('btn-loading');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Message';
+      alert('There was an error sending your message. Please try again.');
+    });
   });
 });
